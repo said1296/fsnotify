@@ -201,12 +201,12 @@ const (
 	// File descriptor was opened.
 	//
 	// Only works on Linux and FreeBSD.
-	xUnportableOpen
+	UnportableOpen
 
 	// File was read from.
 	//
 	// Only works on Linux and FreeBSD.
-	xUnportableRead
+	UnportableRead
 
 	// File opened for writing was closed.
 	//
@@ -216,12 +216,12 @@ const (
 	// waiting for Write events to stop. It's also faster (if you're not
 	// listening to Write events): copying a file of a few GB can easily
 	// generate tens of thousands of Write events in a short span of time.
-	xUnportableCloseWrite
+	UnportableCloseWrite
 
 	// File opened for reading was closed.
 	//
 	// Only works on Linux and FreeBSD.
-	xUnportableCloseRead
+	UnportableCloseRead
 )
 
 var (
@@ -244,7 +244,7 @@ var (
 
 	// ErrUnsupported is returned by AddWith() when WithOps() specified an
 	// Unportable event that's not supported on this platform.
-	xErrUnsupported = errors.New("fsnotify: not supported with this backend")
+	ErrUnsupported = errors.New("fsnotify: not supported with this backend")
 )
 
 // NewWatcher creates a new Watcher.
@@ -344,7 +344,7 @@ func (w *Watcher) WatchList() []string { return w.b.WatchList() }
 //
 // Create, Write, Remove, Rename, and Chmod are always supported. It can only
 // return false for an Op starting with Unportable.
-func (w *Watcher) xSupports(op Op) bool { return w.b.xSupports(op) }
+func (w *Watcher) Supports(op Op) bool { return w.b.Supports(op) }
 
 func (o Op) String() string {
 	var b strings.Builder
@@ -357,16 +357,16 @@ func (o Op) String() string {
 	if o.Has(Write) {
 		b.WriteString("|WRITE")
 	}
-	if o.Has(xUnportableOpen) {
+	if o.Has(UnportableOpen) {
 		b.WriteString("|OPEN")
 	}
-	if o.Has(xUnportableRead) {
+	if o.Has(UnportableRead) {
 		b.WriteString("|READ")
 	}
-	if o.Has(xUnportableCloseWrite) {
+	if o.Has(UnportableCloseWrite) {
 		b.WriteString("|CLOSE_WRITE")
 	}
-	if o.Has(xUnportableCloseRead) {
+	if o.Has(UnportableCloseRead) {
 		b.WriteString("|CLOSE_READ")
 	}
 	if o.Has(Rename) {
@@ -402,7 +402,7 @@ type (
 		Remove(string) error
 		WatchList() []string
 		Close() error
-		xSupports(Op) bool
+		Supports(Op) bool
 	}
 	addOpt   func(opt *withOpts)
 	withOpts struct {
@@ -463,7 +463,7 @@ func WithBufferSize(bytes int) addOpt {
 //
 // AddWith returns an error when using an unportable operation that's not
 // supported. Use [Watcher.Support] to check for support.
-func withOps(op Op) addOpt {
+func WithOps(op Op) addOpt {
 	return func(opt *withOpts) { opt.op = op }
 }
 
